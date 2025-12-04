@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+🛡️ FraudLens
 
-## Getting Started
+AI-powered UPI fraud-text detection that identifies refund scams, impersonation attempts, verification fraud, and phishing — in real time.
 
-First, run the development server:
+🚀 Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+FraudLens is an NLP model trained on a custom English + Hinglish dataset designed to catch modern Indian social-engineering attacks.
+The system classifies incoming messages into:
+safe, refund_scam, impersonation, verification_fraud, phishing.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+✨ Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+🔍 Real-time fraud text classification
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+🧠 Custom-trained transformer model (Colab + Python)
 
-## Learn More
+🇮🇳 Optimized for Indian UPI fraud patterns & Hinglish slang
 
-To learn more about Next.js, take a look at the following resources:
+⚡ Easy API integration with any app / backend
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+🔒 Lightweight + production-friendly
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🧵 Architecture
 
-## Deploy on Vercel
+Dataset Layer: Custom CSV dataset (100–500 samples), English/Hinglish, labeled into 5 fraud categories.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Model Layer: Fine-tuned BERT / DistilBERT classifier.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+API Layer: FastAPI / Node backend exposing /predict.
+
+Frontend: Next.js UI sending text → API → model → prediction.
+
+📂 Project Structure
+FraudLens/
+├── dataset/
+│   └── fraud_text_dataset.csv
+├── model/
+│   ├── train.ipynb
+│   ├── tokenizer/
+│   └── model_weights/
+├── backend/
+│   ├── app.py (FastAPI)
+│   └── requirements.txt
+├── frontend/
+│   └── nextjs-app/
+└── README.md
+
+🏋️‍♂️ Model Training (Google Colab)
+
+Upload dataset
+
+Preprocess + encode text
+
+Fine-tune BERT/DistilBERT
+
+Export tokenizer + model weights
+
+Upload to backend for inference
+
+(If you want, I can generate the exact Colab training notebook for you.)
+
+🔌 API Usage
+
+POST /predict
+
+{
+  "text": "Sir I accidentally sent ₹500, please refund"
+}
+
+
+Response:
+
+{
+  "label": "refund_scam",
+  "confidence": 0.94
+}
+
+🎯 Use Cases
+
+UPI app safety filters
+
+SMS/WhatsApp spam detection
+
+Fraud-warning popups
+
+Banking chatbot guardrails
+
+Customer security layers
+
+🤝 Team
+
+4-member ML + full-stack squad.
+Each team trains different models; FraudLens represents Team 3’s NLP module.
+
+📜 License
+
+MIT — open for innovation.

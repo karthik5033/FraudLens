@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "FraudShield Scanner",
+  "version": "1.0",
+  "description": "Capture screenshot + page context and send to FraudShield web app for analysis.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs",
+    "clipboardWrite"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Scan this page"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

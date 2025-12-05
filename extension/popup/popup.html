@@ -2,19 +2,235 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>FraudShield Scan</title>
+    <title>FraudLens - Stay Safe Online</title>
     <style>
-      body { font-family: Arial, sans-serif; width: 300px; padding: 12px; }
-      button { width:100%; padding:10px; font-size:14px; margin-top:8px; }
-      small { color:#666; display:block; margin-top:8px; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body { 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+        width: 380px;
+        background: #ffffff;
+        color: #2d3748;
+      }
+
+      .container {
+        padding: 0;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        padding: 28px 24px 24px;
+        text-align: center;
+        border-radius: 0 0 24px 24px;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+      }
+
+      .logo {
+        font-size: 56px;
+        margin-bottom: 12px;
+        animation: float 3s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+      }
+
+      h1 {
+        font-size: 26px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: #ffffff;
+        letter-spacing: -0.5px;
+      }
+
+      .tagline {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 400;
+      }
+
+      .content {
+        padding: 24px;
+      }
+
+      .status-card {
+        background: #f7fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 18px;
+        margin-bottom: 24px;
+        transition: all 0.3s ease;
+      }
+
+      .status-card:hover {
+        border-color: #cbd5e0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+
+      #status {
+        color: #4a5568;
+        font-size: 14px;
+        line-height: 1.6;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 500;
+      }
+
+      #status::before {
+        content: "✓";
+        font-size: 20px;
+        color: #10b981;
+        background: #d1fae5;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      button {
+        width: 100%;
+        padding: 16px 20px;
+        font-size: 15px;
+        font-weight: 600;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-family: inherit;
+      }
+
+      #scanBtn {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+      }
+
+      #scanBtn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+      }
+
+      #scanBtn:active {
+        transform: translateY(0);
+      }
+
+      #openAnalyzer {
+        background: #f7fafc;
+        color: #4a5568;
+        border: 2px solid #e2e8f0;
+        box-shadow: none;
+      }
+
+      #openAnalyzer:hover {
+        background: #edf2f7;
+        border-color: #cbd5e0;
+      }
+
+      #openAnalyzer:active {
+        transform: scale(0.98);
+      }
+
+      .info-box {
+        background: #fffbeb;
+        border-left: 4px solid #fbbf24;
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin-top: 16px;
+      }
+
+      .info-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: #92400e;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .info-text {
+        font-size: 12px;
+        line-height: 1.5;
+        color: #78350f;
+      }
+
+      .icon {
+        font-size: 20px;
+      }
+
+      .footer {
+        text-align: center;
+        padding: 16px;
+        font-size: 11px;
+        color: #a0aec0;
+        background: #f7fafc;
+        border-top: 1px solid #e2e8f0;
+      }
+
+      .footer-emoji {
+        margin-right: 4px;
+      }
     </style>
   </head>
   <body>
-    <h3>FraudShield</h3>
-    <div id="status">Ready to scan the page.</div>
-    <button id="scanBtn">Scan & Open Analyzer</button>
-    <button id="openAnalyzer" style="margin-top:6px;">Open Analyzer (manual)</button>
-    <small>Click Scan to take a screenshot, copy it to clipboard, and open the analyzer page.</small>
+    <div class="container">
+      <div class="header">
+        <div class="logo">🔍</div>
+        <h1>FraudLens</h1>
+        <div class="tagline">Your friendly fraud detector</div>
+      </div>
+
+      <div class="content">
+        <div class="status-card">
+          <div id="status">I'm ready when you are!</div>
+        </div>
+
+        <div class="button-group">
+          <button id="scanBtn">
+            <span class="icon">📸</span>
+            Check This Page
+          </button>
+          <button id="openAnalyzer">
+            <span class="icon">🔬</span>
+            Open Analyzer Dashboard
+          </button>
+        </div>
+
+        <div class="info-box">
+          <div class="info-title">
+            <span>💡</span>
+            How it works
+          </div>
+          <div class="info-text">
+            Click "Check This Page" and I'll take a quick look at what you're viewing. I'll help you spot anything that seems suspicious or unsafe.
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span class="footer-emoji">🛡️</span> Keeping you safe online, one click at a time
+      </div>
+    </div>
 
     <script src="popup.js"></script>
   </body>

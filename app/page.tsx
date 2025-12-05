@@ -1,65 +1,105 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import HeroSection from "@/components/hero-section";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  ShieldCheck,
+  ScanLine,
+  QrCode,
+  BrainCircuit,
+  Sparkles,
+} from "lucide-react";
+
+export default function HomePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="w-full min-h-screen">
+      {/* ------------------ HERO SECTION ------------------ */}
+      <HeroSection />
+
+      {/* ------------------ FEATURES SECTION ------------------ */}
+      <section className="py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <h2 className="text-4xl font-semibold mb-6">
+            How FraudShield Protects You
+          </h2>
+
+          <p className="text-gray-600 max-w-2xl mx-auto mb-12">
+            4 specialized AI models work together to detect scams from
+            screenshots, QR codes, fake merchant portals, and suspicious refund
+            messages.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-8">
+            {/* OCR */}
+            <Feature
+              icon={<ScanLine className="size-8 text-blue-600" />}
+              title="OCR + Extraction"
+              desc="Reads text, UPI IDs, amounts, URLs, and QR data directly from the screenshot."
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+            {/* NLP */}
+            <Feature
+              icon={<BrainCircuit className="size-8 text-purple-600" />}
+              title="NLP Fraud Detection"
+              desc="Detects refund scams, impersonation, fake KYC, and phishing patterns."
+            />
+
+            {/* Transaction Model */}
+            <Feature
+              icon={<QrCode className="size-8 text-green-600" />}
+              title="Transaction Risk Model"
+              desc="Identifies ₹1 verification scams, mismatch payments, fake merchant names."
+            />
+
+            {/* Graph Model */}
+            <Feature
+              icon={<ShieldCheck className="size-8 text-red-600" />}
+              title="Graph Fraud Network"
+              desc="Checks if UPI ID or domain belongs to a known fraud cluster."
+            />
+          </div>
         </div>
-      </main>
+      </section>
+
+      {/* ------------------ CTA SECTION ------------------ */}
+      <section className="py-28 bg-gradient-to-b from-blue-50 to-white">
+        <div className="max-w-3xl mx-auto text-center px-6">
+          <h2 className="text-4xl font-semibold mb-4">
+            Ready to Scan Your First Screenshot?
+          </h2>
+
+          <p className="text-gray-600 mb-10">
+            Click below and paste any UPI page or scam message. FraudShield will
+            analyze it instantly.
+          </p>
+
+          <Link href="/analyze">
+            <Button size="lg" className="h-14 text-lg px-10 flex gap-2">
+              <Sparkles className="size-5" />
+              Start Scanning
+            </Button>
+          </Link>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function Feature({
+  icon,
+  title,
+  desc,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="p-6 rounded-xl border bg-white shadow-sm hover:shadow-md transition">
+      <div className="mb-4 flex justify-center">{icon}</div>
+      <h3 className="font-semibold text-lg mb-2">{title}</h3>
+      <p className="text-gray-500 text-sm">{desc}</p>
     </div>
   );
 }

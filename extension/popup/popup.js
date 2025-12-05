@@ -1,84 +1,102 @@
-// popup.js
-// 1) capture visible tab as PNG (dataURL)
-// 2) save it to chrome.storage.local with page context (content.js already saved)
-// 3) try to write image to clipboard (so user can Ctrl+V); this may require user gesture
-// 4) open a new tab to your /analyze page
+// popup/popup.js
+const CAPTURE_TARGET = "https://yourfrauddashboard.com/analyze"; // change to your analyze URL (or http://localhost:3000/analyze)
 
-const ANALYZE_URL = "https://yourdomain.com/analyze"; // <- change to your site (or localhost during dev)
-
-const statusEl = document.getElementById("status");
-const scanBtn = document.getElementById("scanBtn");
-const openBtn = document.getElementById("openAnalyzer");
-
-function setStatus(txt) {
-  statusEl.textContent = txt;
-}
-
-async function captureAndSend() {
-  setStatus("Capturing screenshot...");
-
-  // captureVisibleTab requires permission "activeTab" or "<all_urls>"
-  chrome.tabs.captureVisibleTab(null, { format: "png" }, async (dataUrl) => {
-    if (chrome.runtime.lastError || !dataUrl) {
-      setStatus(
-        "Screenshot failed: " + (chrome.runtime.lastError?.message || "unknown")
-      );
-      return;
-    }
-
-    setStatus("Saving screenshot locally...");
-    // Save screenshot into chrome.storage for the analyze page to pick up
-    chrome.storage.local.set(
-      { screenshotDataUrl: dataUrl, screenshotTs: Date.now() },
-      () => {
-        setStatus("Screenshot saved. Copying to clipboard...");
-
-        // Try to copy to clipboard (works inside popup if allowed)
-        try {
-          // Convert dataURL to blob
-          fetch(dataUrl)
-            .then((res) => res.blob())
-            .then(async (blob) => {
-              try {
-                // ClipboardItem is supported in modern browsers
-                const clipboardItemInput = new ClipboardItem({
-                  [blob.type]: blob,
-                });
-                await navigator.clipboard.write([clipboardItemInput]);
-                setStatus("Screenshot copied to clipboard.");
-              } catch (err) {
-                // Copy to clipboard might fail in some contexts; continue anyway
-                console.warn("clipboard write failed:", err);
-                setStatus("Could not copy to clipboard — continuing.");
-              } finally {
-                // Open the analysis page in a new tab. The page will read chrome.storage.local
-                setStatus("Opening analyzer...");
-                chrome.tabs.create({ url: ANALYZE_URL });
-              }
-            })
-            .catch((err) => {
-              console.error("fetch(blob) failed:", err);
-              setStatus(
-                "Failed to process screenshot, opening analyzer anyway."
-              );
-              chrome.tabs.create({ url: ANALYZE_URL });
-            });
-        } catch (err) {
-          console.warn("clipboard flow failed:", err);
-          setStatus("Clipboard API not available; opening analyzer.");
-          chrome.tabs.create({ url: ANALYZE_URL });
-        }
+document.getElementById("captureBtn").addEventListener("click", async () => {
+  try {
+    // 1) Capture visible tab as dataURL (png)
+    chrome.tabs.captureVisibleTab({ format: "png" }, async (dataUrl) => {
+      if (chrome.runtime.lastError) {
+        console.error("captureVisibleTab error:", chrome.runtime.lastError);
+        alert("Capture failed: " + chrome.runtime.lastError.message);
+        return;
       }
-    );
-  });
-}
 
-scanBtn.addEventListener("click", () => {
-  // user gesture exists, allowed to write to clipboard
-  captureAndSend();
-});
+      // 2) Write image to system clipboard (user gesture present)
+      try {
+        // convert dataURL -> blob
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
 
-// manual open if user wants to paste an image themselves
-openBtn.addEventListener("click", () => {
-  chrome.tabs.create({ url: ANALYZE_URL });
+        // write to clipboard
+        await navigator.clipboard.write([
+          new ClipboardItem({ [blob.type]: blob }),
+        ]);
+      } catch (err) {
+        // Clipboard write may still fail in some environments; warn but continue.
+        console.warn("clipboard write failed:", err);
+      }
+
+      // 3) Open analyzer page in new tab
+      chrome.tabs.create({ url: CAPTURE_TARGET }, (tab) => {
+        if (!tab || !tab.id) {
+          console.warn("Tab creation failed");
+          return;
+        }
+
+        const tabId = tab.id;
+
+        // 4) When tab finishes loading, inject a small script to store the image into sessionStorage
+        const onUpdated = (updatedId, changeInfo, updatedTab) => {
+          if (updatedId !== tabId) return;
+          // Wait until tab is at least 'complete' or URL matches
+          if (
+            changeInfo.status === "complete" ||
+            (updatedTab &&
+              updatedTab.url &&
+              updatedTab.url.startsWith(CAPTURE_TARGET))
+          ) {
+            chrome.tabs.onUpdated.removeListener(onUpdated);
+
+            // Script to run in the target page to set sessionStorage and dispatch event
+            const payload = dataUrl;
+            const code = `
+              try {
+                sessionStorage.setItem('fraudshield_image', ${JSON.stringify(
+                  payload
+                )});
+                // dispatch event signaling image ready
+                window.dispatchEvent(new CustomEvent('fraudshield:image_ready', { detail: { source: 'extension' }}));
+              } catch(e) {
+                console.error('inject failed', e);
+              }
+            `;
+
+            chrome.scripting.executeScript(
+              {
+                target: { tabId },
+                func: () => {},
+                args: [],
+                world: "MAIN",
+                files: [], // use `code` instead via `func` trick below
+              },
+              () => {
+                // executeScript doesn't accept raw code string in MV3, use the alternative via `scripting.executeScript` with `func`
+                chrome.scripting.executeScript({
+                  target: { tabId },
+                  func: (p) => {
+                    try {
+                      sessionStorage.setItem("fraudshield_image", p);
+                      window.dispatchEvent(
+                        new CustomEvent("fraudshield:image_ready", {
+                          detail: { source: "extension" },
+                        })
+                      );
+                    } catch (e) {
+                      console.error("sessionStorage injection failed", e);
+                    }
+                  },
+                  args: [payload],
+                });
+              }
+            );
+          }
+        };
+
+        chrome.tabs.onUpdated.addListener(onUpdated);
+      });
+    });
+  } catch (err) {
+    console.error("Capture flow error:", err);
+    alert("Capture flow failed: " + err.message);
+  }
 });

@@ -1,7 +1,6 @@
 // background.js
-// Minimal service worker. Keep for future background tasks (analytics, auth, messaging).
-// Using chrome.runtime.onInstalled for simple initialization demo.
-
-chrome.runtime.onInstalled.addListener(() => {
+// Minimal service worker — kept for future features or permissions checks.
+// No heavy logic here; popup handles main flow.
+self.addEventListener("install", () => {
   console.log("FraudShield extension installed");
 });

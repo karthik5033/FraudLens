@@ -29,17 +29,19 @@ export default function AnalyzePage() {
           {!previewUrl && (
             <div className="rounded-xl border border-dashed border-gray-400 bg-gray-50/50 p-10 transition hover:bg-gray-100/70">
               <PasteBox
-                onPaste={(base64: string) => {
+                onFileSelect={(base64: string) => {
                   // Convert base64 to Blob and File
-                  const arr = base64.split(',');
-                  const mime = arr[0].match(/:(.*?);/)?.[1] || '';
+                  const arr = base64.split(",");
+                  const mime = arr[0].match(/:(.*?);/)?.[1] || "";
                   const bstr = atob(arr[1]);
                   let n = bstr.length;
                   const u8arr = new Uint8Array(n);
                   while (n--) {
                     u8arr[n] = bstr.charCodeAt(n);
                   }
-                  const file = new File([u8arr], "pasted-image.png", { type: mime });
+                  const file = new File([u8arr], "pasted-image.png", {
+                    type: mime,
+                  });
                   setFile(file);
                   setPreviewUrl(base64);
                 }}
@@ -50,7 +52,7 @@ export default function AnalyzePage() {
           {/* Preview Area */}
           {previewUrl && (
             <div className="space-y-4">
-              <Preview img={previewUrl} />
+              <Preview src={previewUrl} />
 
               <p className="text-center text-gray-500 text-sm flex items-center justify-center gap-2">
                 <ImageIcon className="w-4 h-4" />
@@ -68,3 +70,8 @@ export default function AnalyzePage() {
     </div>
   );
 }
+
+type PasteBoxProps = {
+  // other props
+  onFileSelect?: (base64: string) => void;
+};

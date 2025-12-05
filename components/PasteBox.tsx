@@ -1,111 +1,78 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import { useState, useCallback } from "react";
 
-export default function PasteBox({
-  onPaste,
-}: {
-  onPaste: (base64: string) => void;
-}) {
-  const [dragActive, setDragActive] = useState(false);
+interface PasteBoxProps {
+  onImageReady: (file: File, previewUrl: string) => void;
+}
 
-  // 👉 Handle pasted image (Ctrl+V)
-  useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      const item = e.clipboardData?.items[0];
-      if (!item) return;
+export default function PasteBox({ onImageReady }: PasteBoxProps) {
+  const [isDragging, setIsDragging] = useState(false);
 
-      if (item.type.startsWith("image/")) {
-        const file = item.getAsFile();
-        if (!file) return;
+  const handleFile = useCallback(
+    (file: File) => {
+      const previewUrl = URL.createObjectURL(file);
+      onImageReady(file, previewUrl);
+    },
+    [onImageReady]
+  );
 
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === "string") {
-            onPaste(reader.result);
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    };
+  const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
 
-    window.addEventListener("paste", handlePaste);
-    return () => window.removeEventListener("paste", handlePaste);
-  }, [onPaste]);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFile(file);
+  };
 
-  // 👉 Listen for image injected by Chrome extension
-  useEffect(() => {
-    // 1) Image already in sessionStorage (fast path)
-    const stored = sessionStorage.getItem("fraudshield_image");
-    if (stored) {
-      onPaste(stored);
-      sessionStorage.removeItem("fraudshield_image");
-    }
-
-    // 2) Wait for extension event
-    const handleInjected = () => {
-      const img = sessionStorage.getItem("fraudshield_image");
-      if (img) {
-        onPaste(img);
-        sessionStorage.removeItem("fraudshield_image");
-      }
-    };
-
-    window.addEventListener(
-      "fraudshield:image_ready",
-      handleInjected as EventListener
+  const onPaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const item = [...e.clipboardData.items].find((i) =>
+      i.type.startsWith("image")
     );
 
-    return () => {
-      window.removeEventListener(
-        "fraudshield:image_ready",
-        handleInjected as EventListener
-      );
-    };
-  }, [onPaste]);
+    if (!item) return;
 
-  // 👉 Drag & Drop handler
-  const handleDrop = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setDragActive(false);
+    const file = item.getAsFile();
+    if (file) handleFile(file);
+  };
 
-      const file = e.dataTransfer.files[0];
-      if (!file || !file.type.startsWith("image/")) return;
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          onPaste(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
-    },
-    [onPaste]
-  );
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+  };
 
   return (
     <div
+      className={`
+        w-full h-64 border-2 border-dashed rounded-xl flex flex-col items-center justify-center
+        transition cursor-pointer 
+        ${
+          isDragging
+            ? "border-primary bg-primary/10"
+            : "border-gray-400 bg-gray-50"
+        }
+      `}
       onDragOver={(e) => {
         e.preventDefault();
-        setDragActive(true);
+        setIsDragging(true);
       }}
-      onDragLeave={() => setDragActive(false)}
-      onDrop={handleDrop}
-      className={`
-        w-full max-w-lg h-64 rounded-xl border-2 border-dashed 
-        flex items-center justify-center text-center transition
-        bg-white shadow
-        ${dragActive ? "border-green-500 bg-green-50" : "border-gray-300"}
-      `}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={onDrop}
+      onPaste={onPaste}
+      onClick={() => document.getElementById("hiddenFileInput")?.click()}
     >
-      <div className="p-6">
-        <p className="text-xl font-medium">Paste Screenshot (Ctrl + V)</p>
-        <p className="text-sm text-gray-500 mt-1">
-          or drag & drop an image here
-        </p>
-      </div>
+      <p className="text-center text-gray-600 font-medium">
+        Paste Screenshot (Ctrl + V)
+      </p>
+      <p className="text-sm text-gray-400 mt-1">or drag & drop an image here</p>
+
+      <input
+        id="hiddenFileInput"
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={onChange}
+      />
     </div>
   );
 }
